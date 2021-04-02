@@ -1,54 +1,60 @@
-#include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <sys/types.h>
-#include <Winsock2.h>
-#include <Ws2tcpip.h>
-#include <errno.h>
 
-main()
-{
-    int sock, cli;
-    struct sockaddr_in server, client;
-    unsigned int len;
-    int sent;
+int main(){
 
-    char mesg[] = "Wow this works!";
+	char server_message[256] = "You Made it bitch";
 
-    if((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1){
-        perror("socket: ");
-        exit(-1);
-    }
+	int serverSock;
+	int queueLimit = 1;
+	struct sockaddr_in servAddress;  //the value of server
+	struct sockaddr_in clientAddress; //the value of the client, used in accept
 
-    server.sin_family = AF_INET;
-    server.sin_port = htons(10000);
-    server.sin_addr.s_addr = INADDR_ANY;
-    memset(&server.sin_zero,2, 8);
+	serverSock = socket(PF_INET, SOCK_STREAM, 0);
 
-    len = sizeof(struct sockaddr_in);
+	if( serverSock< 0){ 
+		printf("socket() failed");
+		return 0;
+	}
 
-    if((bind(sock, (struct sockaddr *)&server, len)) == -1)
-    {
-        perror("bind");
-        exit(-1);
-    }
+	servAddress.sin_family = AF_INET;
+	servAddress.sin_port = htons(9002);
+	servAddress.sin_addr.s_addr = INADDR_ANY;
 
-    if(listen(sock, 5) == -1) {
-        perror("listen");
-        exit(-1);
-    }
+	if(bind(serverSock, (struct sockaddr *) &servAddress, sizeof(servAddress)) < 0){
+		printf("bind() failed");
+		return 0;
+	}
 
-    while(1)
-    {
-        if((cli = accept(sock, (struct sockaddr *)&client, &len)) == -1)
-        {
-            perror("accept");
-            exit(-1);
-        }
+	if(listen(serverSock, queueLimit) < 0){
+		printf("listen() failed");
+		return 0;
+	}
 
-        sent = send(cli, mesg, strlen(mesg), 0);
+	for(;;){
 
-        printf("Sent %d bytes to client : %s\n", sent, inet_ntoa(client.sin_addr));
-        close(cli);
-    }
+		int clientLength = sizeof(clientAddress);
+		
+		int clientSock= accept(serverSock, (struct sockaddr *) &clientAddress, &clientLength);
+
+		if(clientSock< 0){
+			printf("accept() failed");
+			return 0;
+		} 
+		printf("%u\n", clientAddress.sin_addr.s_addr);
+
+		send(clientSock, server_message, sizeof(server_message), 0);
+
+		break;
+	}
+
+	close(serverSock);
+
+	return 0;
 }
