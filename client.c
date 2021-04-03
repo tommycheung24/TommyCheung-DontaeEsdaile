@@ -14,7 +14,7 @@ int main(){
 	int clientSock;
 	struct sockaddr_in serverAddress;
 
-	char client_message[256], server_responce[256];
+	char client_message[256];
 
 	//gets the name of the file
 	printf("Enter file name: ");
@@ -51,14 +51,16 @@ void storeText(int socket){
 	char serverResponce[80];
 
 	FILE * file;
-	file = fopen("out.txt", "w");
+	file = fopen("out.txt", "w"); //write to file out.txt
 
 	while(1){
 		int r = recv(socket, serverResponce, sizeof(serverResponce), 0);
 		if(r <= 0){
 			break;
 		}
-		fprintf(file, serverResponce);
+		
+		fputs(serverResponce, file);
+		//fprintf(file, serverResponce);
 	}
 
 	fclose(file);

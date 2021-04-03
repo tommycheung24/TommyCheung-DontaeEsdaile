@@ -52,6 +52,7 @@ int main(){
 		break;
 	}
 
+	//recieves the filename
 	if(recv(clientSock, clientResponce, sizeof(clientResponce), 0) < 0){
 		printf("recv() failed");
 		return 0;
@@ -69,9 +70,9 @@ int sendText(int socket,char* textName){
 	char line[80];
 	
 	FILE* file;
-	file= fopen(textName, "r");
+	file= fopen(textName, "r"); // read file with name textName
 
-	while(fgets(line, sizeof(line), file)){
+	while(fgets(line, sizeof(line), file)){ // gets the a single line
 		send(socket, line, sizeof(line), 0);
 	}
 
