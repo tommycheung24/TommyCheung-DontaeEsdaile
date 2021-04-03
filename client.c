@@ -7,38 +7,60 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
+void storeText(int socket);
 
 int main(){
 
 	int clientSock;
-	struct sockaddr_in clientAddress;
+	struct sockaddr_in serverAddress;
 
-	clientSock = socket(PF_INET, SOCK_STREAM, 0);  //creaetes a socket
+	char client_message[256], server_responce[256];
+
+	//gets the name of the file
+	printf("Enter file name: ");
+	scanf("%s", &client_message);
+
+	clientSock = socket(PF_INET, SOCK_STREAM, 0);  //creates a socket
 
 	if(clientSock< 0){
 		printf("socket() failed");
 		return 0;
 	}
 
-	clientAddress.sin_family = AF_INET;
-	clientAddress.sin_port = htons(9002);
-	clientAddress.sin_addr.s_addr = INADDR_ANY;
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(19044);
+	serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-	int connection = connect(clientSock, (struct sockaddr *) &clientAddress, sizeof(clientAddress));
+	int connection = connect(clientSock, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
 
 	if(connection < 0){
 		printf("connect() failed");
 		return 0;
 	}
 
-	char server_responce[256];
+	send(clientSock, client_message, sizeof(client_message), 0);
 
-	recv(clientSock, &server_responce, sizeof(server_responce), 0);
-
-	printf("%s",server_responce);
+	storeText(clientSock);
 
 	close(clientSock);
-	
-
 	return 0;
+}
+
+void storeText(int socket){
+	
+	char serverResponce[80];
+
+	FILE * file;
+	file = fopen("out.txt", "w");
+
+	while(1){
+		int r = recv(socket, serverResponce, sizeof(serverResponce), 0);
+		if(r <= 0){
+			break;
+		}
+		fprintf(file, serverResponce);
+	}
+
+	fclose(file);
+
 }

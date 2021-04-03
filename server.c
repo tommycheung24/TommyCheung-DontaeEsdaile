@@ -7,54 +7,75 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
+int sendText(int socket,char* textName);
+
 int main(){
 
-	char server_message[256] = "You Made it bitch";
+	char server_message[256], clientResponce[256];
 
-	int serverSock;
+	int serverSock, clientSock ;
 	int queueLimit = 1;
-	struct sockaddr_in servAddress;  //the value of server
-	struct sockaddr_in clientAddress; //the value of the client, used in accept
+	struct sockaddr_in servAddress, clientAddress; 
 
+	//creates a socket, PF_INET = ipv4 protocol, SOCK_STREAM = connection based service, 0 = TCP
 	serverSock = socket(PF_INET, SOCK_STREAM, 0);
-
-	if( serverSock< 0){ 
+	if(serverSock< 0){ 
 		printf("socket() failed");
 		return 0;
 	}
 
 	servAddress.sin_family = AF_INET;
-	servAddress.sin_port = htons(9002);
+	servAddress.sin_port = htons(19044);
 	servAddress.sin_addr.s_addr = INADDR_ANY;
 
+	//binds the socket with the server Address
 	if(bind(serverSock, (struct sockaddr *) &servAddress, sizeof(servAddress)) < 0){
 		printf("bind() failed");
 		return 0;
 	}
 
+	//listen for any connections
 	if(listen(serverSock, queueLimit) < 0){
 		printf("listen() failed");
 		return 0;
 	}
 
+	//infinity waits for a connection
 	for(;;){
+		int clientLength= sizeof(clientAddress);	
+		clientSock =accept(serverSock, (struct sockaddr *) &clientAddress, &clientLength);
 
-		int clientLength = sizeof(clientAddress);
-		
-		int clientSock= accept(serverSock, (struct sockaddr *) &clientAddress, &clientLength);
-
-		if(clientSock< 0){
+		if(clientSock < 0){
 			printf("accept() failed");
 			return 0;
 		} 
-		printf("%u\n", clientAddress.sin_addr.s_addr);
-
-		send(clientSock, server_message, sizeof(server_message), 0);
-
 		break;
 	}
+
+	if(recv(clientSock, clientResponce, sizeof(clientResponce), 0) < 0){
+		printf("recv() failed");
+		return 0;
+	}
+
+	sendText(clientSock, clientResponce);
 
 	close(serverSock);
 
 	return 0;
+}
+
+int sendText(int socket,char* textName){
+
+	char line[80];
+	
+	FILE* file;
+	file= fopen(textName, "r");
+
+	while(fgets(line, sizeof(line), file)){
+		send(socket, line, sizeof(line), 0);
+	}
+
+	fclose(file);
+
+	return 1;
 }
