@@ -28,7 +28,7 @@ int main(){
 	}
 
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(19044);
+	serverAddress.sin_port = htons(15044);
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
 
 	int connection = connect(clientSock, (struct sockaddr *) &serverAddress, sizeof(serverAddress));

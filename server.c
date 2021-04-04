@@ -27,7 +27,7 @@ int main(){
 	}
 
 	servAddress.sin_family = AF_INET;
-	servAddress.sin_port = htons(19044);
+	servAddress.sin_port = htons(15044);
 	servAddress.sin_addr.s_addr = INADDR_ANY;
 
 	//binds the socket with the server Address
@@ -79,35 +79,13 @@ int sendText(int socket,char* textName){
 	short sequenceNumber = 1;
 
 	while(fgets(line_buffer, sizeof(line_buffer), file)){ // gets the a single line
-		//the count, 
-		//short count = (short) sizeof(line_buffer);
-		
-		//get actual line length 
-		for(int i; i< strlen(line_buffer); i++){
-			if(!(line_buffer[i]== 0))
-			{
-				count++;
-			}
 
-		}
-
-		// dynamic "string" with exact amount of bytes
-		char *new_line = (char*) malloc(sizeof(char)*count);
-
-		//fills characters 
-		for(int i =0; i< strlen(line_buffer); i++){
-			if(!(line_buffer[i]== 0))
-			{
-				*(new_line + i) = line_buffer[i];
-			}
-
-		}
-
-		//TODO send dynamic string in socket
+		char newLine[strlen(line_buffer)];
+		strcpy(newLine, line_buffer);
+		short count = (short) sizeof(newLine);
 
 		sendHeader(socket, count, sequenceNumber);
-
-		send(socket, line_buffer, sizeof(line_buffer), 0);
+		send(socket, newLine, sizeof(newLine), 0);
 
 		++sequenceNumber;
 	}
