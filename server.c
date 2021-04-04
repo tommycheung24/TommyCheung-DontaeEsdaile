@@ -19,7 +19,7 @@ int main(){
 
 	//creates a socket, PF_INET = ipv4 protocol, SOCK_STREAM = connection based service, 0 = TCP
 	serverSock = socket(PF_INET, SOCK_STREAM, 0);
-	if(serverSock< 0){ 
+	if(serverSock< 0){
 		printf("socket() failed");
 		return 0;
 	}
@@ -72,11 +72,31 @@ int sendText(int socket,char* textName){
 	FILE* file;
 	file= fopen(textName, "r"); // read file with name textName
 
+	short sequenceNumber = 1;
+
 	while(fgets(line, sizeof(line), file)){ // gets the a single line
+		//the count, 
+		short count = (short*) sizeof(line);
+		
+		sendHeader(socket, count, sequenceNumber);
 		send(socket, line, sizeof(line), 0);
+
+		++sequenceNumber;
 	}
 
 	fclose(file);
 
 	return 1;
 }
+
+void sendHeader(int socket, short count, short sequenceNumber){
+	char header[4];
+
+	header[0] = count
+
+	//sends the header and prints the sequence nunber and number of data bytes
+	send(socket, header, sizeof(header), 0);
+	printf("Packet %d is transmitted with %d data bytes", sequenceNumber, count);
+
+}
+
