@@ -8,6 +8,7 @@
 #include <sys/types.h>
 
 int sendText(int socket,char* textName);
+void sendHeader(int socket, short count, short sequenceNumber);
 
 int main(){
 
@@ -76,7 +77,7 @@ int sendText(int socket,char* textName){
 
 	while(fgets(line, sizeof(line), file)){ // gets the a single line
 		//the count, 
-		short count = (short*) sizeof(line);
+		short count = (short) sizeof(line);
 		
 		sendHeader(socket, count, sequenceNumber);
 		send(socket, line, sizeof(line), 0);
@@ -90,13 +91,16 @@ int sendText(int socket,char* textName){
 }
 
 void sendHeader(int socket, short count, short sequenceNumber){
-	char header[4];
+	unsigned char header[4];
 
-	header[0] = count
+	header[0] = count >> 8;
+	header[1] = count;
+	header[2] = sequenceNumber >> 8;
+	header[3] = sequenceNumber;
 
 	//sends the header and prints the sequence nunber and number of data bytes
 	send(socket, header, sizeof(header), 0);
-	printf("Packet %d is transmitted with %d data bytes", sequenceNumber, count);
+	printf("Packet %d is transmitted with %d data bytes\n", sequenceNumber, count);
 
 }
 

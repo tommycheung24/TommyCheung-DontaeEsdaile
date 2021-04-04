@@ -47,7 +47,7 @@ int main(){
 }
 
 void storeText(int socket){
-	
+
 	char serverResponce[80], header[4];
 
 	FILE * file;
@@ -56,10 +56,17 @@ void storeText(int socket){
 
 	while(1){
 		int headerCount = recv(socket, header, sizeof(header), 0);
-		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
 		printf("%s", header);
 		
+		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
+
+		if(!dataCount){
+			break;
+		}
+
+		
+
 		fputs(serverResponce, file);
 		//fprintf(file, serverResponce);
 	}
