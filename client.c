@@ -48,16 +48,17 @@ int main(){
 
 void storeText(int socket){
 	
-	char serverResponce[80];
+	char serverResponce[80], header[4];
 
 	FILE * file;
 	file = fopen("out.txt", "w"); //write to file out.txt
+	int sequenceNumber = 0;
 
 	while(1){
-		int r = recv(socket, serverResponce, sizeof(serverResponce), 0);
-		if(r <= 0){
-			break;
-		}
+		int headerCount = recv(socket, header, sizeof(header), 0);
+		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
+
+		printf("%s", header);
 		
 		fputs(serverResponce, file);
 		//fprintf(file, serverResponce);
