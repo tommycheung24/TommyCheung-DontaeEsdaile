@@ -7,9 +7,8 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-int sendText(int socket,char* textName);
-void sendHeader(int socket, short count, short sequenceNumber);
-void get_real_count();
+void sendText(int socket,char* textName);
+void sendHeader(int socket, short count, short sequenceNumber, int end);
 
 int main(){
 
@@ -66,12 +65,16 @@ int main(){
 
 	return 0;
 }
+/*
 
-int sendText(int socket,char* textName){
+char* recieveFile(int socket){
+	char 
+	recv(clientSock, clientResponce, sizeof(clientResponce), 0);
+}*/
+
+void sendText(int socket,char* textName){
 	
-
-	char line_buffer[80];
-	int count = 0;
+	char line_buffer[80], confirm[1];
 
 	FILE* file;
 	file= fopen(textName, "r"); // read file with name textName
@@ -84,28 +87,34 @@ int sendText(int socket,char* textName){
 		strcpy(newLine, line_buffer);
 		short count = (short) sizeof(newLine);
 
-		sendHeader(socket, count, sequenceNumber);
+		sendHeader(socket, count, sequenceNumber, 0);
 		send(socket, newLine, sizeof(newLine), 0);
 
 		++sequenceNumber;
 	}
 
-	fclose(file);
+	sendHeader(socket, 0, sequenceNumber, 1);
+	send(socket, "", sizeof(""), 0);
 
-	return 1;
+	fclose(file);
 }
 
 
-void sendHeader(int socket,short count, short sequenceNumber){
+void sendHeader(int socket,short count, short sequenceNumber, int end){
 	unsigned char header[4];
 
-	header[0] = count >> 8;
-	header[1] = count;
-	header[2] = sequenceNumber >> 8;
-	header[3] = sequenceNumber;
+	//header[0] = count >> 8;
+	//header[1] = count;
+	//header[2] = sequenceNumber >> 8;
+	//header[3] = sequenceNumber;
 
 	//sends the header and prints the sequence nunber and number of data bytes
-	send(socket, header, sizeof(header), 0);
-	printf("Packet %d is transmitted with %d data bytes\n", sequenceNumber, count);
+	//send(socket, header, sizeof(header), 0);
+	
+	if(end){
+		printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n", sequenceNumber, count);
+	}else{
+		printf("Packet %d is transmitted with %d data bytes\n", sequenceNumber, count);
+	}
 
 }

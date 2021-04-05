@@ -55,20 +55,17 @@ void storeText(int socket){
 	int sequenceNumber = 0;
 
 	while(1){
-		int headerCount = recv(socket, header, sizeof(header), 0);
-
-		printf("%s", header);
-		
+		//int headerCount = recv(socket, header, sizeof(header), 0);
 		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
 		if(!dataCount){
 			break;
 		}
-
 		
+		printf("Packet n received with %d data bytes", sizeof(serverResponce));
 
 		fputs(serverResponce, file);
-		//fprintf(file, serverResponce);
+		
 	}
 
 	fclose(file);
