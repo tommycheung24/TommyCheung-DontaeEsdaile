@@ -20,6 +20,7 @@ int main(){
 
 	int clientSock;
 	struct sockaddr_in serverAddress;
+	struct header sendHeader;
 
 	char client_message[256];
 
@@ -27,6 +28,9 @@ int main(){
 	printf("Enter file name: ");
 	scanf("%s", &client_message);
 
+	sendHeader.sequence_number = 0;
+	sendHeader.count = sizeof(client_message);
+	
 	clientSock = socket(PF_INET, SOCK_STREAM, 0);  //creates a socket
 
 	if(clientSock< 0){
@@ -35,7 +39,7 @@ int main(){
 	}
 
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(15244);
+	serverAddress.sin_port = htons(10244);
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
 
 	int connection = connect(clientSock, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
@@ -45,6 +49,7 @@ int main(){
 		return 0;
 	}
 
+	send(clientSock, &sendHeader, sizeof(struct header), 0);
 	send(clientSock, client_message, sizeof(client_message), 0);
 
 	storeText(clientSock);
@@ -57,6 +62,8 @@ void storeText(int socket){
 
 	char serverResponce[80];
 
+	int totalCount = 0;
+	int totalPacket = 0;
 
 	FILE * file;
 	file = fopen("out.txt", "w"); //write to file out.txt
@@ -70,31 +77,24 @@ void storeText(int socket){
 	int recv_count = 0;
 
 	while(1){
-		int headerCount = recv(socket, &recv_header, sizeof(struct header), 0);
-
-
-		// parse header (struct)
-
-		recv_sequence_number = recv_header.sequence_number; 
-		recv_count = recv_header.count;
-
-
-		printf("Packet %d received with %d data bytes", recv_sequence_number, recv_count);
-
-		
-		int headerCount = recv(socket, header, sizeof(header), 0);
+		//int headerCount = recv(socket, &recv_header, sizeof(struct header), 0);
 		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
-		if(!dataCount){
+		//printf("Packet %d received with %d data bytes\n", recv_header.sequence_number, recv_header.count);
+		
+		//int headerCount = recv(socket, header, sizeof(header), 0);
+
+		if(dataCount < 0){
 			break;
 		}
-		
-		printf("Packet n received with %d data bytes", sizeof(serverResponce));
-
+		send(socket, "", sizeof(""), 0);
 		fputs(serverResponce, file);
-		
+		totalCount += dataCount;
+		++totalPacket;
 	}
-
 	fclose(file);
+
+	printf("Number of data packets received: %d\n", totalPacket);
+	printf("Number of data bytes received: %d\n", totalCount);
 
 }

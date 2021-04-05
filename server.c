@@ -32,7 +32,7 @@ int main(){
 	}
 
 	servAddress.sin_family = AF_INET;
-	servAddress.sin_port = htons(15044);
+	servAddress.sin_port = htons(10244);
 	servAddress.sin_addr.s_addr = INADDR_ANY;
 
 	//binds the socket with the server Address
@@ -58,7 +58,7 @@ int main(){
 		} 
 		break;
 	}
-	if(recv(cleintSock, header, sizeof(struct Header), 0) < 0){
+	if(recv(clientSock, &header, sizeof(struct Header), 0) < 0){
 		printf("recv() failed");
 	}
 
@@ -90,34 +90,28 @@ void sendText(int socket,char* textName){
 		char newLine[strlen(line_buffer)];
 		strcpy(newLine, line_buffer);
 		short count = (short) sizeof(newLine);
-
 		sendHeader(socket, count, sequenceNumber, 0);
 		send(socket, newLine, sizeof(newLine), 0);
 
 		++sequenceNumber;
 		totalCount += count;
+
+		recv(socket, confirm, sizeof(confirm), 0);
 	}
 
 	sendHeader(socket, 0, sequenceNumber, 1);
-	send(socket, "", sizeof(""), 0);
+	//send(socket, "", sizeof(""), 0);
 
 	printf("Number of data packets transmitted: %d\n", sequenceNumber -1);
 	printf("Total number of bytes transmitted: %d\n", totalCount);
-<<<<<<< HEAD
-
-	fclose(file);
-}
-=======
->>>>>>> 779a4e84a314f137f4300b12314ee4427892f861
 
 	fclose(file);
 }
 
-<<<<<<< HEAD
 void sendHeader(int socket,short count, short sequenceNumber, int end){
 	struct Header header = {count, sequenceNumber};
 
-	send(socket, &header, sizeof(struct Header), 0);
+	//send(socket, &header, sizeof(struct Header), 0);
 	
 	if(end){
 		printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n", sequenceNumber, count);
@@ -127,18 +121,3 @@ void sendHeader(int socket,short count, short sequenceNumber, int end){
 
 }
 
-=======
-
-void sendHeader(int socket,short count, short sequenceNumber, int end){
-	struct Header header = {count, sequenceNumber};
-
-	send(socket, &header, sizeof(struct Header), 0);
-	
-	if(end){
-		printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n", sequenceNumber, count);
-	}else{
-		printf("Packet %d is transmitted with %d data bytes\n", sequenceNumber, count);
-	}
-
-}
->>>>>>> 779a4e84a314f137f4300b12314ee4427892f861
