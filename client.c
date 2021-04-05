@@ -75,23 +75,28 @@ void storeText(int socket){
 	// header fields
 	int recv_sequence_number = 0;
 	int recv_count = 0;
+	int headerCount;
+	int dataCount;
 
 	while(1){
-		//int headerCount = recv(socket, &recv_header, sizeof(struct header), 0);
-		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
+		//if(headerCount = recv(socket, &recv_header, sizeof(struct header), 0) < 0){
+		//	printf("header() recv() failed");
+		//}
+		if(dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0) < 0){
+			printf("data recv() failed");
+		}
 
+		fputs(serverResponce, file);
 		//printf("Packet %d received with %d data bytes\n", recv_header.sequence_number, recv_header.count);
 		
 		//int headerCount = recv(socket, header, sizeof(header), 0);
-
-		if(dataCount < 0){
-			break;
-		}
+		
 		send(socket, "", sizeof(""), 0);
-		fputs(serverResponce, file);
+		
 		totalCount += dataCount;
 		++totalPacket;
 	}
+	
 	fclose(file);
 
 	printf("Number of data packets received: %d\n", totalPacket);
