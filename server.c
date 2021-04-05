@@ -10,9 +10,15 @@
 void sendText(int socket,char* textName);
 void sendHeader(int socket, short count, short sequenceNumber, int end);
 
+struct Header{
+	short count;
+	short sequenceNumber;
+};
+
 int main(){
 
-	char server_message[256], clientResponce[256];
+	struct Header header;
+	char clientResponce[256];
 
 	int serverSock, clientSock ;
 	int queueLimit = 1;
@@ -52,6 +58,9 @@ int main(){
 		} 
 		break;
 	}
+	if(recv(cleintSock, header, sizeof(struct Header), 0) < 0){
+		printf("recv() failed");
+	}
 
 	//recieves the filename
 	if(recv(clientSock, clientResponce, sizeof(clientResponce), 0) < 0){
@@ -65,12 +74,6 @@ int main(){
 
 	return 0;
 }
-/*
-
-char* recieveFile(int socket){
-	char 
-	recv(clientSock, clientResponce, sizeof(clientResponce), 0);
-}*/
 
 void sendText(int socket,char* textName){
 	
@@ -80,6 +83,7 @@ void sendText(int socket,char* textName){
 	file= fopen(textName, "r"); // read file with name textName
 
 	short sequenceNumber = 1;
+	int totalCount = 0;
 
 	while(fgets(line_buffer, sizeof(line_buffer), file)){ // gets the a single line
 
@@ -91,25 +95,23 @@ void sendText(int socket,char* textName){
 		send(socket, newLine, sizeof(newLine), 0);
 
 		++sequenceNumber;
+		totalCount += count;
 	}
 
 	sendHeader(socket, 0, sequenceNumber, 1);
 	send(socket, "", sizeof(""), 0);
+
+	printf("Number of data packets transmitted: %d\n", sequenceNumber -1);
+	printf("Total number of bytes transmitted: %d\n", totalCount);
 
 	fclose(file);
 }
 
 
 void sendHeader(int socket,short count, short sequenceNumber, int end){
-	unsigned char header[4];
+	struct Header header = {count, sequenceNumber};
 
-	//header[0] = count >> 8;
-	//header[1] = count;
-	//header[2] = sequenceNumber >> 8;
-	//header[3] = sequenceNumber;
-
-	//sends the header and prints the sequence nunber and number of data bytes
-	//send(socket, header, sizeof(header), 0);
+	send(socket, &header, sizeof(struct Header), 0);
 	
 	if(end){
 		printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n", sequenceNumber, count);
