@@ -82,14 +82,17 @@ void storeText(int socket){
 		printf("Packet %d received with %d data bytes", recv_sequence_number, recv_count);
 
 		
+		int headerCount = recv(socket, header, sizeof(header), 0);
 		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
 		if(!dataCount){
 			break;
 		}
+		
+		printf("Packet n received with %d data bytes", sizeof(serverResponce));
 
 		fputs(serverResponce, file);
-		//fprintf(file, serverResponce);
+		
 	}
 
 	fclose(file);
