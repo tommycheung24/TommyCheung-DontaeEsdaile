@@ -9,6 +9,13 @@
 
 void storeText(int socket);
 
+
+struct header{
+	short sequence_number;
+	short count;
+
+};
+
 int main(){
 
 	int clientSock;
@@ -28,7 +35,7 @@ int main(){
 	}
 
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(15044);
+	serverAddress.sin_port = htons(15244);
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
 
 	int connection = connect(clientSock, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
@@ -48,24 +55,38 @@ int main(){
 
 void storeText(int socket){
 
-	char serverResponce[80], header[4];
+	char serverResponce[80];
+
 
 	FILE * file;
 	file = fopen("out.txt", "w"); //write to file out.txt
-	int sequenceNumber = 0;
+
+
+	//recieved struct
+	struct header recv_header;
+
+	// header fields
+	int recv_sequence_number = 0;
+	int recv_count = 0;
 
 	while(1){
-		int headerCount = recv(socket, header, sizeof(header), 0);
+		int headerCount = recv(socket, &recv_header, sizeof(struct header), 0);
 
-		//printf("%s", header);
+
+		// parse header (struct)
+
+		recv_sequence_number = recv_header.sequence_number; 
+		recv_count = recv_header.count;
+
+
+		printf("Packet %d received with %d data bytes", recv_sequence_number, recv_count);
+
 		
 		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
 		if(!dataCount){
 			break;
 		}
-
-		
 
 		fputs(serverResponce, file);
 		//fprintf(file, serverResponce);
