@@ -28,7 +28,7 @@ int main(){
 	}
 
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(19044);
+	serverAddress.sin_port = htons(15044);
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
 
 	int connection = connect(clientSock, (struct sockaddr *) &serverAddress, sizeof(serverAddress));
@@ -57,7 +57,7 @@ void storeText(int socket){
 	while(1){
 		int headerCount = recv(socket, header, sizeof(header), 0);
 
-		printf("%s", header);
+		//printf("%s", header);
 		
 		int dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
