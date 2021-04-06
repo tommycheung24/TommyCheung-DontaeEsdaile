@@ -3,7 +3,6 @@
 Github Link : https://github.com/tommycheung24/TommyCheung-DontaeEsdaile/tree/f7338df6e1af7c8f83e5df742bb2d37c78ad82cd
 
 - List of files:
-test.txt
 client.c 
 server.c
 README.TXT
