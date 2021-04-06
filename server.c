@@ -8,7 +8,7 @@
 #include <sys/types.h>
 
 void sendText(int socket,char* textName);
-void sendHeader(int socket, short count, short sequenceNumber, int end);
+void sendHeader(int socket, unsigned short count, unsigned short sequenceNumber, int end);
 
 struct Header{
 	short count;
@@ -58,9 +58,6 @@ int main(){
 		} 
 		break;
 	}
-	if(recv(clientSock, &header, sizeof(struct Header), 0) < 0){
-		printf("recv() failed");
-	}
 
 	//recieves the filename
 	if(recv(clientSock, clientResponce, sizeof(clientResponce), 0) < 0){
@@ -77,30 +74,45 @@ int main(){
 
 void sendText(int socket,char* textName){
 	
+	//line_buffer is the line in the file, confirm is the response from client 
 	char line_buffer[80], confirm[1];
 
 	FILE* file;
 	file= fopen(textName, "r"); // read file with name textName
 
-	short sequenceNumber = 1;
+	unsigned short sequenceNumber = 1;
 	int totalCount = 0;
 
-	while(fgets(line_buffer, sizeof(line_buffer), file)){ // gets the a single line
+	//gets a single line in the file and stores it in line_buffer
+	while(fgets(line_buffer, sizeof(line_buffer), file)){
 
+		//cuts the unused space away before sending the data
 		char newLine[strlen(line_buffer)];
 		strcpy(newLine, line_buffer);
-		short count = (short) sizeof(newLine);
+		
+		//gets the size in bytes of the new char array
+		unsigned short count = (unsigned short) sizeof(newLine);
+		
+		//sends the header with info, count and sequence number
 		sendHeader(socket, count, sequenceNumber, 0);
+		//recieves a confirmation from client so the server don't move on until the client is ready
+		recv(socket, confirm, sizeof(confirm), 0);
+		//sends the actually data after the server recieves confirmation
 		send(socket, newLine, sizeof(newLine), 0);
 
+		//add 1 to sequence number, add count to totalCount(total bytes send)
 		++sequenceNumber;
 		totalCount += count;
 
+		//waits again for confirmation to move on from client
 		recv(socket, confirm, sizeof(confirm), 0);
 	}
 
+	//since it's out of loop it means that there's no more lines to grab from file
+	//time to send the End of Transmission packet
 	sendHeader(socket, 0, sequenceNumber, 1);
-	//send(socket, "", sizeof(""), 0);
+	//sends an empty data 
+	send(socket, "", sizeof(""), 0);
 
 	printf("Number of data packets transmitted: %d\n", sequenceNumber -1);
 	printf("Total number of bytes transmitted: %d\n", totalCount);
@@ -108,16 +120,22 @@ void sendText(int socket,char* textName){
 	fclose(file);
 }
 
-void sendHeader(int socket,short count, short sequenceNumber, int end){
-	struct Header header = {count, sequenceNumber};
+void sendHeader(int socket,unsigned short count, unsigned short sequenceNumber, int end){
+	unsigned char header[4];
 
-	//send(socket, &header, sizeof(struct Header), 0);
+	//putting the two shorts into a 4 bytes char array 
+	header[0] = count;
+	header[1] = count >> 8;
+	header[2] = sequenceNumber;
+	header[3] = sequenceNumber >> 8;
+
+	send(socket, header, sizeof(header), 0);
 	
+	//end means if it is an End of Transmission Packet
 	if(end){
 		printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n", sequenceNumber, count);
 	}else{
 		printf("Packet %d is transmitted with %d data bytes\n", sequenceNumber, count);
 	}
-
 }
 

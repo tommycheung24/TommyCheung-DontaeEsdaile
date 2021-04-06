@@ -9,27 +9,16 @@
 
 void storeText(int socket);
 
-
-struct header{
-	short sequence_number;
-	short count;
-
-};
-
 int main(){
 
 	int clientSock;
 	struct sockaddr_in serverAddress;
-	struct header sendHeader;
 
 	char client_message[256];
 
-	//gets the name of the file
+	//gets the name of the file from user
 	printf("Enter file name: ");
 	scanf("%s", &client_message);
-
-	sendHeader.sequence_number = 0;
-	sendHeader.count = sizeof(client_message);
 	
 	clientSock = socket(PF_INET, SOCK_STREAM, 0);  //creates a socket
 
@@ -49,9 +38,10 @@ int main(){
 		return 0;
 	}
 
-	send(clientSock, &sendHeader, sizeof(struct header), 0);
+	//sends the file name to server
 	send(clientSock, client_message, sizeof(client_message), 0);
 
+	//store incoming data for file
 	storeText(clientSock);
 
 	close(clientSock);
@@ -61,6 +51,7 @@ int main(){
 void storeText(int socket){
 
 	char serverResponce[80];
+	unsigned char header[4];
 
 	int totalCount = 0;
 	int totalPacket = 0;
@@ -68,37 +59,44 @@ void storeText(int socket){
 	FILE * file;
 	file = fopen("out.txt", "w"); //write to file out.txt
 
-
-	//recieved struct
-	struct header recv_header;
-
-	// header fields
-	int recv_sequence_number = 0;
-	int recv_count = 0;
 	int headerCount;
 	int dataCount;
 
 	while(1){
-		//if(headerCount = recv(socket, &recv_header, sizeof(struct header), 0) < 0){
-		//	printf("header() recv() failed");
-		//}
+		//clears out the char array
+		bzero(header, 4);
+		//recieves the header
+		recv(socket, header, sizeof(header), 0);
+		
+		//reassemble the char array into two shorts(count and sequence number)
+		unsigned short count = header[0] + (header[1] << 8);
+		unsigned short seq = header[2] + (header[3] << 8);
+
+		//sends a blank message to server to signal to move on
+		send(socket, "", sizeof(""), 0);
+
+		//clears out the char array
+		bzero(serverResponce, 80);
+		//recieves the data
 		dataCount = recv(socket, serverResponce, sizeof(serverResponce), 0);
 
-		if(!dataCount){
+		//if the length of the data is 0 and count is zero, then it's the end of transmission
+		if(!strlen(serverResponce) && (count == 0)){
+			printf("End of Transmission Packet with sequence number %d received with %d data bytes\n", seq, count);
 			break;
 		}
-
+		//puts the data into the file
 		fputs(serverResponce, file);
-		totalCount += dataCount;
+		//update value
+		totalCount += count;
 		++totalPacket;
-
-		printf("Packet %d received with %d data bytes\n", totalPacket,dataCount);
+		printf("Packet %d received with %d data bytes\n", seq, count);		
 		
-		//int headerCount = recv(socket, header, sizeof(header), 0);
-		
+		//signal to move on
 		send(socket, "", sizeof(""), 0);
+
 	}
-	
+	//close file
 	fclose(file);
 
 	printf("Number of data packets received: %d\n", totalPacket);
