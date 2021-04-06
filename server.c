@@ -10,14 +10,9 @@
 void sendText(int socket,char* textName);
 void sendHeader(int socket, unsigned short count, unsigned short sequenceNumber, int end);
 
-struct Header{
-	short count;
-	short sequenceNumber;
-};
-
 int main(){
 
-	struct Header header;
+	unsigned char header[4];
 	char clientResponce[256];
 
 	int serverSock, clientSock ;
@@ -58,10 +53,16 @@ int main(){
 		} 
 		break;
 	}
+	if(recv(clientSock, header, sizeof(header), 0) <0 ){
+		printf("header recv() failed");
+		return 0;
+	}
+	//signal to move on
+	send(clientSock, "", sizeof(""), 0);
 
 	//recieves the filename
 	if(recv(clientSock, clientResponce, sizeof(clientResponce), 0) < 0){
-		printf("recv() failed");
+		printf("data recv() failed");
 		return 0;
 	}
 

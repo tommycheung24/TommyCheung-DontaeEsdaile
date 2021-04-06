@@ -8,13 +8,14 @@
 #include <sys/types.h>
 
 void storeText(int socket);
+void sendHeader(int socket, unsigned short count);
 
 int main(){
 
 	int clientSock;
 	struct sockaddr_in serverAddress;
 
-	char client_message[256];
+	char client_message[256], confirm[1];
 
 	//gets the name of the file from user
 	printf("Enter file name: ");
@@ -38,6 +39,10 @@ int main(){
 		return 0;
 	}
 
+	//sends the header, with the size of the filename and sequence number 0
+	sendHeader(clientSock, (unsigned short) sizeof(client_message));
+
+	recv(clientSock, confirm, sizeof(confirm), 0);
 	//sends the file name to server
 	send(clientSock, client_message, sizeof(client_message), 0);
 
@@ -101,5 +106,19 @@ void storeText(int socket){
 
 	printf("Number of data packets received: %d\n", totalPacket);
 	printf("Number of data bytes received: %d\n", totalCount);
+
+}
+
+void sendHeader(int socket, unsigned short count){
+	unsigned char header[4];
+	unsigned short seq = 0;
+
+	//dissambles count and sequence number into a 4 bytes char array
+	header[0] = count;
+	header[1] = count >> 8;
+	header[2] = seq;
+	header[3] = seq >> 8;
+
+	send(socket, header, sizeof(header), 0);
 
 }
